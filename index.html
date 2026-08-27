@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Plug Automation Dashboard</title>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: #f4f6f9; 
+            margin: 0;
+        }
+        .card { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            text-align: center; 
+            max-width: 350px;
+            width: 100%;
+        }
+        h2 { color: #333; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
+        
+        /* Runtime inputs configuration styling layout */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label { display: block; font-size: 12px; font-weight: 600; color: #444; margin-bottom: 5px; text-transform: uppercase; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        
+        .btn-container { display: flex; gap: 10px; margin-top: 10px; }
+        button { 
+            flex: 1;
+            padding: 12px; 
+            font-size: 15px; 
+            font-weight: bold; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            color: white; 
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        .on-btn { background-color: #2ec4b6; }
+        .off-btn { background-color: #e71d36; }
+        
+        #status { 
+            margin-top: 20px; 
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            font-size: 14px; 
+            color: #555; 
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Equipment Hub</h2>
+    <div class="subtitle">GitHub Pages Smart Control Panel</div>
+    
+    <!-- User Input fields for custom runtime durations -->
+    <div class="input-group">
+        <label for="duration">Target Runtime Duration (Minutes)</label>
+        <input type="number" id="duration" placeholder="e.g., 60" min="1">
+    </div>
+
+    <div class="btn-container">
+        <button class="on-btn" onclick="togglePlug(true)">Turn ON</button>
+        <button class="off-btn" onclick="togglePlug(false)">Turn OFF</button>
+    </div>
+    
+    <div id="status">Status: Ready</div>
+</div>
+
+<script>
+    async function togglePlug(turnOn) {
+        const statusDiv = document.getElementById('status');
+        const durationInput = document.getElementById('duration').value;
+        
+        statusDiv.innerText = "Status: Sending command...";
+        statusDiv.style.color = "#333";
+        
+        try {
+            // NOTE: Replace this URL placeholder string later with your actual deployed Vercel backend link!
+            const backendUrl = 'https://vercel.app'; 
+            
+            const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    turnOn: turnOn,
+                    durationMinutes: durationInput ? parseInt(durationInput) : null 
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                let statusMessage = `Status: Device turned ${turnOn ? 'ON' : 'OFF'}`;
+                if (turnOn && durationInput) {
+                    statusMessage += ` for ${durationInput} mins`;
+                }
+                statusDiv.innerText = statusMessage;
+                statusDiv.style.color = "#2ec4b6";
+            } else {
+                statusDiv.innerText = `Error: ${data.error || 'Execution failed'}`;
+                statusDiv.style.color = "#e71d36";
+            }
+        } catch (err) {
+            statusDiv.innerText = "Status: Failed to reach relay backend server.";
+            statusDiv.style.color = "#e71d36";
+            console.error("Connection error context:", err);
+        }
+    }
+</script>
+
+</body>
+</html>
