@@ -49,7 +49,7 @@ export default async function handler(req, res) {
   }
 
   // Tuya US region
-  const schema = 'https://tuyaus.com';
+ const schema = "https://openapi.tuyaus.com";
 
   try {
     // ==========================================
