@@ -3,71 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Smart Plug Automation Dashboard</title>
+
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f6f9; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; max-width: 350px; width: 100%; }
-        h2 { color: #333; margin-bottom: 5px; }
-        .subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; font-size: 12px; font-weight: 600; color: #444; margin-bottom: 5px; text-transform: uppercase; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .btn-container { display: flex; gap: 10px; margin-top: 10px; }
-        button { flex: 1; padding: 12px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; transition: opacity 0.2s; }
-        button:hover { opacity: 0.9; }
-        .on-btn { background-color: #2ec4b6; }
-        .off-btn { background-color: #e71d36; }
-        #status { margin-top: 20px; padding: 10px; border-radius: 6px; background: #f8f9fa; font-size: 14px; color: #555; font-weight: 500; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .on-btn {
+            background-color: #2ec4b6;
+        }
+
+        .off-btn {
+            background-color: #e71d36;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+            min-height: 20px;
+        }
     </style>
 </head>
+
 <body>
 
 <div class="card">
+
     <h2>Equipment Hub</h2>
-    <div class="subtitle">GitHub Pages Smart Control Panel</div>
+
+    <div class="subtitle">
+        GitHub Pages Smart Control Panel
+    </div>
+
     <div class="input-group">
-        <label for="duration">Target Runtime Duration (Minutes)</label>
-        <input type="number" id="duration" placeholder="e.g., 60" min="1">
+
+        <label for="duration">
+            Target Runtime Duration (Minutes)
+        </label>
+
+        <input
+            type="number"
+            id="duration"
+            placeholder="e.g., 60"
+            min="1"
+            step="1"
+        >
+
     </div>
+
     <div class="btn-container">
-        <button class="on-btn" onclick="togglePlug(true)">Turn ON</button>
-        <button class="off-btn" onclick="togglePlug(false)">Turn OFF</button>
+
+        <button
+            id="onButton"
+            class="on-btn"
+            onclick="togglePlug(true)"
+        >
+            Turn ON
+        </button>
+
+        <button
+            id="offButton"
+            class="off-btn"
+            onclick="togglePlug(false)"
+        >
+            Turn OFF
+        </button>
+
     </div>
-    <div id="status">Status: Ready</div>
+
+    <div id="status">
+        Status: Ready
+    </div>
+
 </div>
 
+
 <script>
+
+    // =====================================================
+    // VERCEL BACKEND
+    // =====================================================
+
+    const BACKEND_URL =
+        'https://tuya-control-hub.vercel.app/api/toggle';
+
+
+    // =====================================================
+    // CONTROL SMART PLUG
+    // =====================================================
+
     async function togglePlug(turnOn) {
-        const statusDiv = document.getElementById('status');
-        const durationInput = document.getElementById('duration').value;
-        statusDiv.innerText = "Status: Sending command...";
-        statusDiv.style.color = "#333";
-        try {
-            // Your production Vercel backend route endpoint
-            const backendUrl = 'https://tuya-control-rim4pd49v-brl4.vercel.app/api/toggle'; 
-            const response = await fetch(backendUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    turnOn: turnOn,
-                    durationMinutes: durationInput ? parseInt(durationInput) : null 
-                })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                let statusMessage = `Status: Device turned ${turnOn ? 'ON' : 'OFF'}`;
-                if (turnOn && durationInput) statusMessage += ` for ${durationInput} mins`;
-                statusDiv.innerText = statusMessage;
-                statusDiv.style.color = "#2ec4b6";
-            } else {
-                statusDiv.innerText = `Error: ${data.error || 'Execution failed'}`;
-                statusDiv.style.color = "#e71d36";
+
+        const statusDiv =
+            document.getElementById('status');
+
+        const durationInput =
+            document.getElementById('duration');
+
+        const onButton =
+            document.getElementById('onButton');
+
+        const offButton =
+            document.getElementById('offButton');
+
+
+        // Get duration
+        const durationValue =
+            durationInput.value.trim();
+
+
+        // Validate duration when turning ON
+        if (turnOn && durationValue) {
+
+            const duration =
+                parseInt(durationValue, 10);
+
+            if (
+                isNaN(duration) ||
+                duration < 1
+            ) {
+
+                statusDiv.innerText =
+                    'Error: Duration must be at least 1 minute.';
+
+                statusDiv.style.color =
+                    '#e71d36';
+
+                return;
             }
-        } catch (err) {
-            statusDiv.innerText = "Status: Failed to reach relay backend server.";
-            statusDiv.style.color = "#e71d36";
         }
+
+
+        // Disable buttons while request is running
+        onButton.disabled = true;
+        offButton.disabled = true;
+
+
+        statusDiv.innerText =
+            'Status: Sending command...';
+
+        statusDiv.style.color =
+            '#333';
+
+
+        try {
+
+            // =================================================
+            // SEND REQUEST TO VERCEL
+            // =================================================
+
+            const response = await fetch(
+                BACKEND_URL,
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify({
+
+                        turnOn: turnOn,
+
+                        durationMinutes:
+                            durationValue
+                                ? parseInt(durationValue, 10)
+                                : null
+
+                    })
+                }
+            );
+
+
+            // =================================================
+            // READ SERVER RESPONSE
+            // =================================================
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                'Backend response:',
+                data
+            );
+
+
+            // =================================================
+            // SUCCESS
+            // =================================================
+
+            if (response.ok && data.success) {
+
+                let statusMessage =
+                    `Status: Device turned ${
+                        turnOn ? 'ON' : 'OFF'
+                    }`;
+
+
+                if (
+                    turnOn &&
+                    durationValue
+                ) {
+
+                    statusMessage +=
+                        ` for ${durationValue} mins`;
+
+                }
+
+
+                statusDiv.innerText =
+                    statusMessage;
+
+                statusDiv.style.color =
+                    '#2ec4b6';
+
+            }
+
+
+            // =================================================
+            // SERVER ERROR
+            // =================================================
+
+            else {
+
+                const errorMessage =
+                    data.error ||
+                    data.message ||
+                    'Execution failed';
+
+                statusDiv.innerText =
+                    `Error: ${errorMessage}`;
+
+                statusDiv.style.color =
+                    '#e71d36';
+
+                console.error(
+                    'Backend error:',
+                    data
+                );
+            }
+
+        }
+
+
+        // =====================================================
+        // NETWORK / CORS ERROR
+        // =====================================================
+
+        catch (error) {
+
+            console.error(
+                'Request failed:',
+                error
+            );
+
+            statusDiv.innerText =
+                'Error: Unable to reach the Vercel backend.';
+
+            statusDiv.style.color =
+                '#e71d36';
+        }
+
+
+        // Re-enable buttons
+        onButton.disabled = false;
+        offButton.disabled = false;
     }
+
 </script>
 
 </body>
