@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 }
 
   // Tuya US region
- const schema = "https://openapi.tuyaus.com";
+const schema = "https://openapi-sg.iotbing.com";
 
   try {
     // ==========================================
