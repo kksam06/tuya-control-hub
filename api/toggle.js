@@ -42,11 +42,16 @@ export default async function handler(req, res) {
   const CLIENT_SECRET = process.env.TUYA_CLIENT_SECRET;
   const DEVICE_ID = process.env.TUYA_DEVICE_ID;
 
-  if (!CLIENT_ID || !CLIENT_SECRET || !DEVICE_ID) {
-    return res.status(500).json({
-      error: 'Missing Tuya environment variables'
-    });
-  }
+ if (!CLIENT_ID || !CLIENT_SECRET || !DEVICE_ID) {
+  return res.status(500).json({
+    error: 'Missing Tuya environment variables',
+    checks: {
+      clientId: !!CLIENT_ID,
+      clientSecret: !!CLIENT_SECRET,
+      deviceId: !!DEVICE_ID
+    }
+  });
+}
 
   // Tuya US region
  const schema = "https://openapi.tuyaus.com";
