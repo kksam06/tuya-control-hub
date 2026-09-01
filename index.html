@@ -1,128 +1,370 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Smart Plug Automation Dashboard</title>
 
+
     <style>
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
+
+            font-family:
+                system-ui,
+                -apple-system,
+                sans-serif;
+
             display: flex;
+
             justify-content: center;
+
             align-items: center;
-            height: 100vh;
+
+            min-height: 100vh;
+
             background: #f4f6f9;
+
             margin: 0;
+
+            padding: 20px;
+
+            box-sizing: border-box;
+
         }
+
 
         .card {
+
             background: white;
+
             padding: 30px;
+
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+            box-shadow:
+                0 4px 12px rgba(0,0,0,0.08);
+
             text-align: center;
-            max-width: 350px;
+
+            max-width: 500px;
+
             width: 100%;
+
         }
+
 
         h2 {
+
             color: #333;
+
             margin-bottom: 5px;
+
         }
+
 
         .subtitle {
+
             color: #666;
+
             font-size: 14px;
+
             margin-bottom: 25px;
+
         }
+
+
+        /* =========================================
+           RUNTIME INPUT
+           ========================================= */
 
         .input-group {
+
             margin-bottom: 20px;
+
             text-align: left;
+
         }
+
 
         label {
+
             display: block;
+
             font-size: 12px;
+
             font-weight: 600;
+
             color: #444;
+
             margin-bottom: 5px;
+
             text-transform: uppercase;
+
         }
+
 
         input {
+
             width: 100%;
+
             padding: 10px;
+
             border: 1px solid #ccc;
+
             border-radius: 6px;
+
             box-sizing: border-box;
+
         }
+
+
+        /* =========================================
+           ON / OFF BUTTONS
+           ========================================= */
 
         .btn-container {
+
             display: flex;
+
             gap: 10px;
+
             margin-top: 10px;
+
         }
+
 
         button {
+
             flex: 1;
+
             padding: 12px;
+
             font-size: 15px;
+
             font-weight: bold;
+
             border: none;
+
             border-radius: 6px;
+
             cursor: pointer;
+
             color: white;
+
             transition: opacity 0.2s;
+
         }
+
 
         button:hover {
+
             opacity: 0.9;
+
         }
+
 
         button:disabled {
+
             opacity: 0.5;
+
             cursor: not-allowed;
+
         }
+
 
         .on-btn {
+
             background-color: #2ec4b6;
+
         }
+
 
         .off-btn {
+
             background-color: #e71d36;
+
         }
 
+
+        /* =========================================
+           COMMAND STATUS
+           ========================================= */
+
         #status {
+
             margin-top: 20px;
+
             padding: 10px;
+
             border-radius: 6px;
+
             background: #f8f9fa;
+
             font-size: 14px;
+
             color: #555;
+
             font-weight: 500;
+
             min-height: 20px;
+
         }
+
+
+        /* =========================================
+           ENERGY MONITORING
+           ========================================= */
+
+        .energy-section {
+
+            margin-top: 30px;
+
+            padding-top: 20px;
+
+            border-top: 1px solid #eee;
+
+        }
+
+
+        .energy-title {
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            color: #333;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .energy-grid {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 12px;
+
+        }
+
+
+        .energy-box {
+
+            background: #f8f9fa;
+
+            border-radius: 8px;
+
+            padding: 15px;
+
+        }
+
+
+        .energy-label {
+
+            font-size: 12px;
+
+            color: #777;
+
+            margin-bottom: 5px;
+
+        }
+
+
+        .energy-value {
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            color: #333;
+
+        }
+
+
+        .energy-unit {
+
+            font-size: 13px;
+
+            color: #777;
+
+            margin-left: 3px;
+
+        }
+
+
+        .last-updated {
+
+            margin-top: 15px;
+
+            font-size: 12px;
+
+            color: #888;
+
+        }
+
+
+        .monitor-status {
+
+            margin-top: 8px;
+
+            font-size: 13px;
+
+            color: #777;
+
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
+
 <div class="card">
 
-    <h2>Equipment Hub</h2>
+
+    <!-- =========================================
+         TITLE
+         ========================================= -->
+
+    <h2>
+
+        Equipment Hub
+
+    </h2>
+
 
     <div class="subtitle">
-        GitHub Pages Smart Control Panel
+
+        Smart Plug Control & Energy Monitoring
+
     </div>
+
+
+
+    <!-- =========================================
+         RUNTIME INPUT
+         ========================================= -->
 
     <div class="input-group">
 
         <label for="duration">
+
             Target Runtime Duration (Minutes)
+
         </label>
+
 
         <input
             type="number"
@@ -134,34 +376,225 @@
 
     </div>
 
+
+
+    <!-- =========================================
+         ON / OFF BUTTONS
+         ========================================= -->
+
     <div class="btn-container">
+
 
         <button
             id="onButton"
             class="on-btn"
             onclick="togglePlug(true)"
         >
+
             Turn ON
+
         </button>
+
 
         <button
             id="offButton"
             class="off-btn"
             onclick="togglePlug(false)"
         >
+
             Turn OFF
+
         </button>
 
+
     </div>
 
+
+
+    <!-- =========================================
+         COMMAND STATUS
+         ========================================= -->
+
     <div id="status">
+
         Status: Ready
+
     </div>
+
+
+
+    <!-- =========================================
+         ENERGY MONITORING
+         ========================================= -->
+
+    <div class="energy-section">
+
+
+        <div class="energy-title">
+
+            Energy Monitoring
+
+        </div>
+
+
+        <div class="energy-grid">
+
+
+            <!-- POWER -->
+
+            <div class="energy-box">
+
+                <div class="energy-label">
+
+                    Current Power
+
+                </div>
+
+
+                <div class="energy-value">
+
+                    <span id="powerValue">
+
+                        --
+
+                    </span>
+
+                    <span class="energy-unit">
+
+                        W
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- VOLTAGE -->
+
+            <div class="energy-box">
+
+                <div class="energy-label">
+
+                    Voltage
+
+                </div>
+
+
+                <div class="energy-value">
+
+                    <span id="voltageValue">
+
+                        --
+
+                    </span>
+
+                    <span class="energy-unit">
+
+                        V
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- CURRENT -->
+
+            <div class="energy-box">
+
+                <div class="energy-label">
+
+                    Current
+
+                </div>
+
+
+                <div class="energy-value">
+
+                    <span id="currentValue">
+
+                        --
+
+                    </span>
+
+                    <span class="energy-unit">
+
+                        mA
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ENERGY -->
+
+            <div class="energy-box">
+
+                <div class="energy-label">
+
+                    Energy Used
+
+                </div>
+
+
+                <div class="energy-value">
+
+                    <span id="energyValue">
+
+                        --
+
+                    </span>
+
+                    <span class="energy-unit">
+
+                        kWh
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div
+            id="monitorStatus"
+            class="monitor-status"
+        >
+
+            Connecting to smart plug...
+
+        </div>
+
+
+        <div
+            id="lastUpdated"
+            class="last-updated"
+        >
+
+            Last updated: --
+
+        </div>
+
+
+    </div>
+
 
 </div>
 
 
+
 <script>
+
 
     // =====================================================
     // VERCEL BACKEND
@@ -172,34 +605,54 @@
 
 
     // =====================================================
+    // STATUS BACKEND
+    // =====================================================
+
+    const STATUS_URL =
+        'https://tuya-control-hub.vercel.app/api/status';
+
+
+
+    // =====================================================
     // CONTROL SMART PLUG
     // =====================================================
 
     async function togglePlug(turnOn) {
 
+
         const statusDiv =
             document.getElementById('status');
+
 
         const durationInput =
             document.getElementById('duration');
 
+
         const onButton =
             document.getElementById('onButton');
+
 
         const offButton =
             document.getElementById('offButton');
 
 
         // Get duration
+
         const durationValue =
             durationInput.value.trim();
 
 
-        // Validate duration when turning ON
+
+        // =================================================
+        // VALIDATE DURATION
+        // =================================================
+
         if (turnOn && durationValue) {
+
 
             const duration =
                 parseInt(durationValue, 10);
+
 
             if (
                 isNaN(duration) ||
@@ -213,12 +666,19 @@
                     '#e71d36';
 
                 return;
+
             }
+
         }
 
 
-        // Disable buttons while request is running
+
+        // =================================================
+        // DISABLE BUTTONS
+        // =================================================
+
         onButton.disabled = true;
+
         offButton.disabled = true;
 
 
@@ -229,37 +689,54 @@
             '#333';
 
 
+
         try {
+
 
             // =================================================
             // SEND REQUEST TO VERCEL
             // =================================================
 
-            const response = await fetch(
-                BACKEND_URL,
-                {
-                    method: 'POST',
+            const response =
+                await fetch(
 
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    BACKEND_URL,
 
-                    body: JSON.stringify({
+                    {
 
-                        turnOn: turnOn,
+                        method: 'POST',
 
-                        durationMinutes:
-                            durationValue
-                                ? parseInt(durationValue, 10)
-                                : null
+                        headers: {
 
-                    })
-                }
-            );
+                            'Content-Type':
+                                'application/json'
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                turnOn:
+                                    turnOn,
+
+                                durationMinutes:
+                                    durationValue
+                                        ? parseInt(
+                                            durationValue,
+                                            10
+                                        )
+                                        : null
+
+                            })
+
+                    }
+
+                );
+
 
 
             // =================================================
-            // READ SERVER RESPONSE
+            // READ RESPONSE
             // =================================================
 
             const data =
@@ -272,15 +749,22 @@
             );
 
 
+
             // =================================================
             // SUCCESS
             // =================================================
 
-            if (response.ok && data.success) {
+            if (
+                response.ok &&
+                data.success
+            ) {
+
 
                 let statusMessage =
                     `Status: Device turned ${
-                        turnOn ? 'ON' : 'OFF'
+                        turnOn
+                            ? 'ON'
+                            : 'OFF'
                     }`;
 
 
@@ -298,10 +782,17 @@
                 statusDiv.innerText =
                     statusMessage;
 
+
                 statusDiv.style.color =
                     '#2ec4b6';
 
+
+                // Immediately refresh readings
+
+                getDeviceStatus();
+
             }
+
 
 
             // =================================================
@@ -310,51 +801,429 @@
 
             else {
 
+
                 const errorMessage =
                     data.error ||
                     data.message ||
                     'Execution failed';
 
+
                 statusDiv.innerText =
                     `Error: ${errorMessage}`;
 
+
                 statusDiv.style.color =
                     '#e71d36';
+
 
                 console.error(
                     'Backend error:',
                     data
                 );
+
             }
 
         }
 
 
+
         // =====================================================
-        // NETWORK / CORS ERROR
+        // NETWORK ERROR
         // =====================================================
 
         catch (error) {
+
 
             console.error(
                 'Request failed:',
                 error
             );
 
+
             statusDiv.innerText =
                 'Error: Unable to reach the Vercel backend.';
 
+
             statusDiv.style.color =
                 '#e71d36';
+
         }
 
 
-        // Re-enable buttons
+
+        // =================================================
+        // RE-ENABLE BUTTONS
+        // =================================================
+
         onButton.disabled = false;
+
         offButton.disabled = false;
+
     }
+
+
+
+    // =====================================================
+    // GET DEVICE STATUS
+    // =====================================================
+
+    async function getDeviceStatus() {
+
+
+        const monitorStatus =
+            document.getElementById(
+                'monitorStatus'
+            );
+
+
+        try {
+
+
+            monitorStatus.innerText =
+                'Reading smart plug...';
+
+
+
+            // =================================================
+            // ASK VERCEL BACKEND FOR DEVICE STATUS
+            // =================================================
+
+            const response =
+                await fetch(
+                    STATUS_URL
+                );
+
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                'Status response:',
+                data
+            );
+
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    'Status request failed'
+                );
+
+            }
+
+
+
+            // =================================================
+            // FIND TUYA STATUS ARRAY
+            // =================================================
+
+            let statusList = null;
+
+
+            if (
+                Array.isArray(data)
+            ) {
+
+                statusList = data;
+
+            }
+
+            else if (
+                Array.isArray(data.result)
+            ) {
+
+                statusList =
+                    data.result;
+
+            }
+
+            else if (
+                data.result &&
+                Array.isArray(data.result.status)
+            ) {
+
+                statusList =
+                    data.result.status;
+
+            }
+
+            else if (
+                Array.isArray(data.data)
+            ) {
+
+                statusList =
+                    data.data;
+
+            }
+
+            else if (
+                data.data &&
+                Array.isArray(data.data.status)
+            ) {
+
+                statusList =
+                    data.data.status;
+
+            }
+
+
+
+            // =================================================
+            // CHECK WHETHER WE FOUND THE STATUS DATA
+            // =================================================
+
+            if (
+                !statusList
+            ) {
+
+                console.error(
+                    'Could not find status array:',
+                    data
+                );
+
+                throw new Error(
+                    'Unexpected status response format'
+                );
+
+            }
+
+
+
+            // =================================================
+            // VARIABLES
+            // =================================================
+
+            let power = null;
+
+            let voltage = null;
+
+            let current = null;
+
+            let energy = null;
+
+
+
+            // =================================================
+            // READ EACH TUYA DATA POINT
+            // =================================================
+
+            statusList.forEach(item => {
+
+
+                if (
+                    item.code ===
+                    'cur_power'
+                ) {
+
+                    // Tuya specification:
+                    // scale = 1
+
+                    power =
+                        Number(item.value) /
+                        10;
+
+                }
+
+
+
+                else if (
+                    item.code ===
+                    'cur_voltage'
+                ) {
+
+                    // Tuya specification:
+                    // scale = 1
+
+                    voltage =
+                        Number(item.value) /
+                        10;
+
+                }
+
+
+
+                else if (
+                    item.code ===
+                    'cur_current'
+                ) {
+
+                    // Tuya specification:
+                    // scale = 0
+
+                    current =
+                        Number(item.value);
+
+                }
+
+
+
+                else if (
+                    item.code ===
+                    'add_elec'
+                ) {
+
+                    // Tuya specification:
+                    // scale = 3
+
+                    energy =
+                        Number(item.value) /
+                        1000;
+
+                }
+
+            });
+
+
+
+            // =================================================
+            // DISPLAY POWER
+            // =================================================
+
+            if (
+                power !== null &&
+                !isNaN(power)
+            ) {
+
+                document.getElementById(
+                    'powerValue'
+                ).innerText =
+                    power.toFixed(1);
+
+            }
+
+
+
+            // =================================================
+            // DISPLAY VOLTAGE
+            // =================================================
+
+            if (
+                voltage !== null &&
+                !isNaN(voltage)
+            ) {
+
+                document.getElementById(
+                    'voltageValue'
+                ).innerText =
+                    voltage.toFixed(1);
+
+            }
+
+
+
+            // =================================================
+            // DISPLAY CURRENT
+            // =================================================
+
+            if (
+                current !== null &&
+                !isNaN(current)
+            ) {
+
+                document.getElementById(
+                    'currentValue'
+                ).innerText =
+                    current.toFixed(0);
+
+            }
+
+
+
+            // =================================================
+            // DISPLAY ENERGY
+            // =================================================
+
+            if (
+                energy !== null &&
+                !isNaN(energy)
+            ) {
+
+                document.getElementById(
+                    'energyValue'
+                ).innerText =
+                    energy.toFixed(3);
+
+            }
+
+
+
+            // =================================================
+            // UPDATE MONITOR STATUS
+            // =================================================
+
+            monitorStatus.innerText =
+                'Connected to smart plug';
+
+
+            monitorStatus.style.color =
+                '#2ec4b6';
+
+
+
+            // =================================================
+            // LAST UPDATED
+            // =================================================
+
+            const now =
+                new Date();
+
+
+            document.getElementById(
+                'lastUpdated'
+            ).innerText =
+                'Last updated: ' +
+                now.toLocaleTimeString();
+
+        }
+
+
+
+        catch (error) {
+
+
+            console.error(
+                'Unable to get device status:',
+                error
+            );
+
+
+            monitorStatus.innerText =
+                'Unable to read smart plug';
+
+
+            monitorStatus.style.color =
+                '#e71d36';
+
+        }
+
+    }
+
+
+
+    // =====================================================
+    // START MONITORING
+    // =====================================================
+
+    getDeviceStatus();
+
+
+
+    // =====================================================
+    // REFRESH EVERY 5 SECONDS
+    // =====================================================
+
+    setInterval(
+        getDeviceStatus,
+        5000
+    );
+
 
 </script>
 
+
 </body>
+
 </html>
