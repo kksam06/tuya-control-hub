@@ -23,53 +23,69 @@ export default async function handler(req, res) {
     'Content-Type'
   );
 
-  // Handle browser preflight
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
 
-  // Only allow GET
   if (req.method !== 'GET') {
     return res.status(405).json({
       error: 'Method Not Allowed'
     });
   }
 
+
   // ==========================================
   // TUYA ENVIRONMENT VARIABLES
   // ==========================================
 
-  const CLIENT_ID = process.env.TUYA_CLIENT_ID;
-  const CLIENT_SECRET = process.env.TUYA_CLIENT_SECRET;
-  const DEVICE_ID = process.env.TUYA_DEVICE_ID;
+  const CLIENT_ID =
+    process.env.TUYA_CLIENT_ID;
 
-  if (!CLIENT_ID || !CLIENT_SECRET || !DEVICE_ID) {
+  const CLIENT_SECRET =
+    process.env.TUYA_CLIENT_SECRET;
+
+  const DEVICE_ID =
+    process.env.TUYA_DEVICE_ID;
+
+
+  if (
+    !CLIENT_ID ||
+    !CLIENT_SECRET ||
+    !DEVICE_ID
+  ) {
+
     return res.status(500).json({
       error: 'Missing Tuya environment variables'
     });
+
   }
 
+
   // ==========================================
-  // TUYA US REGION
+  // TUYA SINGAPORE DATA CENTER
   // ==========================================
 
-  const schema = 'https://openapi.tuyaus.com';
+  const schema =
+    'https://openapi.tuyaus.com';
+
 
   try {
 
     // ==========================================
-    // 1. GET TUYA ACCESS TOKEN
+    // 1. GET ACCESS TOKEN
     // ==========================================
 
-    const timestamp = Date.now().toString();
+    const timestamp =
+      Date.now().toString();
 
     const tokenSignUrl =
       '/v1.0/token?grant_type=1';
 
-    const emptyBodyHash = crypto
-      .createHash('sha256')
-      .update('')
-      .digest('hex');
+    const emptyBodyHash =
+      crypto
+        .createHash('sha256')
+        .update('')
+        .digest('hex');
 
     const signString =
       CLIENT_ID +
@@ -79,47 +95,59 @@ export default async function handler(req, res) {
       '\n\n' +
       tokenSignUrl;
 
-    const signature = crypto
-      .createHmac('sha256', CLIENT_SECRET)
-      .update(signString)
-      .digest('hex')
-      .toUpperCase();
+    const signature =
+      crypto
+        .createHmac(
+          'sha256',
+          CLIENT_SECRET
+        )
+        .update(signString)
+        .digest('hex')
+        .toUpperCase();
 
-    const tokenRes = await fetch(
-      `${schema}${tokenSignUrl}`,
-      {
-        method: 'GET',
 
-        headers: {
-          client_id: CLIENT_ID,
-          sign: signature,
-          t: timestamp,
-          sign_method: 'HMAC-SHA256'
+    const tokenRes =
+      await fetch(
+        `${schema}${tokenSignUrl}`,
+        {
+          method: 'GET',
+
+          headers: {
+            client_id: CLIENT_ID,
+            sign: signature,
+            t: timestamp,
+            sign_method: 'HMAC-SHA256'
+          }
         }
-      }
+      );
+
+
+    const tokenData =
+      await tokenRes.json();
+
+
+    console.log(
+      'Tuya token response:',
+      tokenData
     );
 
-    const tokenData = await tokenRes.json();
 
     if (!tokenData.success) {
-
-      console.error(
-        'Tuya token error:',
-        tokenData
-      );
 
       return res.status(500).json({
         error: 'Failed to acquire Tuya token',
         details: tokenData
       });
+
     }
+
 
     const accessToken =
       tokenData.result.access_token;
 
 
     // ==========================================
-    // 2. ASK TUYA FOR DEVICE STATUS
+    // 2. GET DEVICE STATUS
     // ==========================================
 
     const statusUrl =
@@ -128,19 +156,22 @@ export default async function handler(req, res) {
     const statusTimestamp =
       Date.now().toString();
 
-    const emptyHash = crypto
-      .createHash('sha256')
-      .update('')
-      .digest('hex');
+    const statusBodyHash =
+      crypto
+        .createHash('sha256')
+        .update('')
+        .digest('hex');
+
 
     const statusSignString =
       CLIENT_ID +
       accessToken +
       statusTimestamp +
       'GET\n' +
-      emptyHash +
+      statusBodyHash +
       '\n\n' +
       statusUrl;
+
 
     const statusSignature =
       crypto
@@ -153,20 +184,21 @@ export default async function handler(req, res) {
         .toUpperCase();
 
 
-    const statusRes = await fetch(
-      `${schema}${statusUrl}`,
-      {
-        method: 'GET',
+    const statusRes =
+      await fetch(
+        `${schema}${statusUrl}`,
+        {
+          method: 'GET',
 
-        headers: {
-          client_id: CLIENT_ID,
-          access_token: accessToken,
-          sign: statusSignature,
-          t: statusTimestamp,
-          sign_method: 'HMAC-SHA256'
+          headers: {
+            client_id: CLIENT_ID,
+            access_token: accessToken,
+            sign: statusSignature,
+            t: statusTimestamp,
+            sign_method: 'HMAC-SHA256'
+          }
         }
-      }
-    );
+      );
 
 
     const statusData =
@@ -188,16 +220,97 @@ export default async function handler(req, res) {
         error: 'Failed to get device status',
         details: statusData
       });
+
     }
 
 
     // ==========================================
-    // 3. RETURN STATUS TO FRONTEND
+    // 3. EXTRACT DEVICE VALUES
+    // ==========================================
+
+    const statusList =
+      statusData.result || [];
+
+
+    const findValue =
+      (code) => {
+
+        const item =
+          statusList.find(
+            x => x.code === code
+          );
+
+        return item
+          ? item.value
+          : null;
+      };
+
+
+    const rawPower =
+      findValue('cur_power');
+
+    const rawVoltage =
+      findValue('cur_voltage');
+
+    const rawCurrent =
+      findValue('cur_current');
+
+    const rawEnergy =
+      findValue('add_elec');
+
+    const relayStatus =
+      findValue('relay_status');
+
+
+    // ==========================================
+    // 4. APPLY TUYA SCALES
+    // ==========================================
+
+    const power =
+      rawPower !== null
+        ? rawPower / 10
+        : null;
+
+    const voltage =
+      rawVoltage !== null
+        ? rawVoltage / 10
+        : null;
+
+    const current =
+      rawCurrent !== null
+        ? rawCurrent
+        : null;
+
+    const energy =
+      rawEnergy !== null
+        ? rawEnergy / 1000
+        : null;
+
+
+    // ==========================================
+    // 5. RETURN CLEAN DATA TO GITHUB PAGE
     // ==========================================
 
     return res.status(200).json({
+
       success: true,
-      status: statusData.result
+
+      device: {
+
+        power: power,
+
+        voltage: voltage,
+
+        current: current,
+
+        energy: energy,
+
+        relayStatus: relayStatus
+
+      },
+
+      raw: statusList
+
     });
 
 
@@ -208,9 +321,17 @@ export default async function handler(req, res) {
       error
     );
 
+
     return res.status(500).json({
-      error: 'Internal status server error',
-      message: error.message
+
+      error:
+        'Internal status server error',
+
+      message:
+        error.message
+
     });
+
   }
+
 }
