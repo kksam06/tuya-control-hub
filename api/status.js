@@ -66,7 +66,7 @@ export default async function handler(req, res) {
   // ==========================================
 
   const schema =
-    'https://openapi.tuyaus.com';
+    'https://openapi-sg.iotbing.com';
 
 
   try {
