@@ -914,294 +914,122 @@
 
             }
 
+// =================================================
+// READ DEVICE STATUS FROM BACKEND
+// =================================================
 
+if (!data.success || !data.device) {
+    throw new Error(
+        data.error || 'Invalid device status response'
+    );
+}
 
-            // =================================================
-            // FIND TUYA STATUS ARRAY
-            // =================================================
+const device = data.device;
 
-            let statusList = null;
+const power = Number(device.power);
+const voltage = Number(device.voltage);
+const current = Number(device.current);
+const energy = device.energy !== null
+    ? Number(device.energy)
+    : null;
 
 
-            if (
-                Array.isArray(data)
-            ) {
+// =================================================
+// DISPLAY POWER
+// =================================================
 
-                statusList = data;
+if (!isNaN(power)) {
 
-            }
+    document.getElementById(
+        'powerValue'
+    ).innerText = power.toFixed(1);
 
-            else if (
-                Array.isArray(data.result)
-            ) {
+}
 
-                statusList =
-                    data.result;
 
-            }
+// =================================================
+// DISPLAY VOLTAGE
+// =================================================
 
-            else if (
-                data.result &&
-                Array.isArray(data.result.status)
-            ) {
+if (!isNaN(voltage)) {
 
-                statusList =
-                    data.result.status;
+    document.getElementById(
+        'voltageValue'
+    ).innerText = voltage.toFixed(1);
 
-            }
+}
 
-            else if (
-                Array.isArray(data.data)
-            ) {
 
-                statusList =
-                    data.data;
+// =================================================
+// DISPLAY CURRENT
+// =================================================
 
-            }
+if (!isNaN(current)) {
 
-            else if (
-                data.data &&
-                Array.isArray(data.data.status)
-            ) {
+    document.getElementById(
+        'currentValue'
+    ).innerText = current.toFixed(0);
 
-                statusList =
-                    data.data.status;
+}
 
-            }
 
+// =================================================
+// DISPLAY ENERGY
+// =================================================
 
+if (energy !== null && !isNaN(energy)) {
 
-            // =================================================
-            // CHECK WHETHER WE FOUND THE STATUS DATA
-            // =================================================
+    document.getElementById(
+        'energyValue'
+    ).innerText = energy.toFixed(3);
 
-            if (
-                !statusList
-            ) {
+} else {
 
-                console.error(
-                    'Could not find status array:',
-                    data
-                );
+    document.getElementById(
+        'energyValue'
+    ).innerText = '--';
 
-                throw new Error(
-                    'Unexpected status response format'
-                );
+}
 
-            }
 
+// =================================================
+// UPDATE MONITOR STATUS
+// =================================================
 
+monitorStatus.innerText =
+    'Connected to smart plug';
 
-            // =================================================
-            // VARIABLES
-            // =================================================
+monitorStatus.style.color =
+    '#2ec4b6';
 
-            let power = null;
 
-            let voltage = null;
+// =================================================
+// LAST UPDATED
+// =================================================
 
-            let current = null;
+const now = new Date();
 
-            let energy = null;
+document.getElementById(
+    'lastUpdated'
+).innerText =
+    'Last updated: ' +
+    now.toLocaleTimeString();
 
 
-
-            // =================================================
-            // READ EACH TUYA DATA POINT
-            // =================================================
-
-            statusList.forEach(item => {
-
-
-                if (
-                    item.code ===
-                    'cur_power'
-                ) {
-
-                    // Tuya specification:
-                    // scale = 1
-
-                    power =
-                        Number(item.value) /
-                        10;
-
-                }
-
-
-
-                else if (
-                    item.code ===
-                    'cur_voltage'
-                ) {
-
-                    // Tuya specification:
-                    // scale = 1
-
-                    voltage =
-                        Number(item.value) /
-                        10;
-
-                }
-
-
-
-                else if (
-                    item.code ===
-                    'cur_current'
-                ) {
-
-                    // Tuya specification:
-                    // scale = 0
-
-                    current =
-                        Number(item.value);
-
-                }
-
-
-
-                else if (
-                    item.code ===
-                    'add_elec'
-                ) {
-
-                    // Tuya specification:
-                    // scale = 3
-
-                    energy =
-                        Number(item.value) /
-                        1000;
-
-                }
-
-            });
-
-
-
-            // =================================================
-            // DISPLAY POWER
-            // =================================================
-
-            if (
-                power !== null &&
-                !isNaN(power)
-            ) {
-
-                document.getElementById(
-                    'powerValue'
-                ).innerText =
-                    power.toFixed(1);
-
-            }
-
-
-
-            // =================================================
-            // DISPLAY VOLTAGE
-            // =================================================
-
-            if (
-                voltage !== null &&
-                !isNaN(voltage)
-            ) {
-
-                document.getElementById(
-                    'voltageValue'
-                ).innerText =
-                    voltage.toFixed(1);
-
-            }
-
-
-
-            // =================================================
-            // DISPLAY CURRENT
-            // =================================================
-
-            if (
-                current !== null &&
-                !isNaN(current)
-            ) {
-
-                document.getElementById(
-                    'currentValue'
-                ).innerText =
-                    current.toFixed(0);
-
-            }
-
-
-
-            // =================================================
-            // DISPLAY ENERGY
-            // =================================================
-
-            if (
-                energy !== null &&
-                !isNaN(energy)
-            ) {
-
-                document.getElementById(
-                    'energyValue'
-                ).innerText =
-                    energy.toFixed(3);
-
-            }
-
-
-
-            // =================================================
-            // UPDATE MONITOR STATUS
-            // =================================================
-
-            monitorStatus.innerText =
-                'Connected to smart plug';
-
-
-            monitorStatus.style.color =
-                '#2ec4b6';
-
-
-
-            // =================================================
-            // LAST UPDATED
-            // =================================================
-
-            const now =
-                new Date();
-
-
-            document.getElementById(
-                'lastUpdated'
-            ).innerText =
-                'Last updated: ' +
-                now.toLocaleTimeString();
-
-        }
-
-
-
-        catch (error) {
-
+        } catch (error) {
 
             console.error(
                 'Unable to get device status:',
                 error
             );
 
-
             monitorStatus.innerText =
                 'Unable to read smart plug';
 
-
             monitorStatus.style.color =
                 '#e71d36';
-
         }
-
     }
-
-
 
     // =====================================================
     // START MONITORING
