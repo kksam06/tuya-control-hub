@@ -5,12 +5,25 @@ export default async function handler(req, res) {
   // CORS
   // ==========================================
 
-  const allowedOrigin = 'https://kksam06.github.io';
+    const ALLOWED_ORIGINS = [
+    'https://kksam06.github.io',
+    'https://iqballlshahh.github.io',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080'
+  ];
+
+  const allowedOrigin =
+    ALLOWED_ORIGINS.includes(req.headers.origin)
+      ? req.headers.origin
+      : ALLOWED_ORIGINS[0];
 
   res.setHeader(
     'Access-Control-Allow-Origin',
     allowedOrigin
   );
+  // The header now depends on who is asking, so a cache must not hand one
+  // site's response to another.
+  res.setHeader('Vary', 'Origin');
 
   res.setHeader(
     'Access-Control-Allow-Methods',
@@ -40,7 +53,9 @@ export default async function handler(req, res) {
 
   const CLIENT_ID = process.env.TUYA_CLIENT_ID;
   const CLIENT_SECRET = process.env.TUYA_CLIENT_SECRET;
-  const DEVICE_ID = process.env.TUYA_DEVICE_ID;
+  const DEVICE_ID =
+    (req.body?.deviceId || '').trim() ||
+    process.env.TUYA_DEVICE_ID;
 
  if (!CLIENT_ID || !CLIENT_SECRET || !DEVICE_ID) {
   return res.status(500).json({
