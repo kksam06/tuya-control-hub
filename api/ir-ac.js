@@ -17,7 +17,7 @@
 // POST { action: "add-remote", remoteName, brandId, brandName, remoteIndex }
 // POST { action: "delete-remote", remoteId }
 // POST { action: "learn", on: true | false }    → { learningTime } when on
-// POST { action: "match", code }                → { token, expiresIn }
+// POST { action: "match", code, preToken? }     → { token, expiresIn }  (preToken: the previous press's token)
 //
 // Tuya's values: mode 0 cool · 1 heat · 2 auto · 3 fan · 4 dry;
 //                wind 0 auto · 1 low · 2 mid · 3 high; power and swing 0 / 1.
@@ -195,7 +195,10 @@ async function handlePost(req, res, deviceId, body) {
       if (typeof body.code !== 'string' || !HEX_CODE.test(body.code)) {
         return fail(res, 400, 'code must be a hex learned code');
       }
-      const r = (await startMatching(deviceId, CATEGORY_AC, body.code)) || {};
+      if (body.preToken !== undefined && (typeof body.preToken !== 'string' || !TOKEN.test(body.preToken))) {
+        return fail(res, 400, 'preToken is malformed');
+      }
+      const r = (await startMatching(deviceId, CATEGORY_AC, body.code, body.preToken)) || {};
       if (!r.token) return fail(res, 502, 'Tuya returned no matching token');
       return ok(res, { token: r.token, expiresIn: r.expire_time ?? null });
     }
