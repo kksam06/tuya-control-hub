@@ -10,6 +10,7 @@
 // GET  ?action=indexes&brandId=2782             a brand's code sets
 // GET  ?action=brand-of&remoteIndex=2000420     brand(s) using a code set
 // GET  ?action=status&remoteId=…                last state sent through a remote
+// GET  ?action=keys&remoteId=…                  modes / temps / fan speeds the code set supports
 // GET  ?action=learned&learningTime=…           code captured since learning began
 // GET  ?action=match-result&token=…             smart-matching candidates
 // POST { action: "command", remoteId, power, mode, temp, wind, swing? }
@@ -24,7 +25,7 @@
 import {
   applyCors, pickDevice, fail, failFromError, CATEGORY_AC,
   listRemotes, remoteBelongs, listBrands, listRemoteIndexes, brandsOfIndex,
-  addRemote, deleteRemote, sendAcScene, getAcStatus,
+  addRemote, deleteRemote, sendAcScene, getAcStatus, getRemoteKeys,
   setLearningState, getLearnedCode, startMatching, getMatchingResult,
 } from '../lib/tuya-ir.js';
 
@@ -112,6 +113,22 @@ async function handleGet(req, res, deviceId) {
       return ok(res, {
         state: { power: num(s.power), mode: num(s.mode), temp: num(s.temp),
                  wind: num(s.wind), swing: num(s.swing) },
+      });
+    }
+    case 'keys': {
+      if (!(await checkRemote(res, deviceId, q.remoteId))) return;
+      const r = (await getRemoteKeys(deviceId, q.remoteId)) || {};
+      const ints = (list) => [...new Set(list.filter(Number.isInteger))].sort((a, b) => a - b);
+      // Tuya documents fan_list as an object but returns an array; take either.
+      const fansOf = (t) => [].concat(t && t.fan_list ? t.fan_list : []).map(f => f && f.fan);
+      const modes = (Array.isArray(r.key_range) ? r.key_range : []).map(m => {
+        const temps = Array.isArray(m.temp_list) ? m.temp_list : [];
+        return { mode: m.mode, temps: ints(temps.map(t => t && t.temp)), fans: ints(temps.flatMap(fansOf)) };
+      }).filter(m => Number.isInteger(m.mode));
+      return ok(res, {
+        modes,
+        keys: (Array.isArray(r.key_list) ? r.key_list : []).map(k => k && k.key).filter(k => typeof k === 'string'),
+        duplicatePower: !!r.duplicate_power,
       });
     }
     case 'learned': {
