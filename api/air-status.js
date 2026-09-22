@@ -4,18 +4,20 @@
 //
 //   { success: true,
 //     device: { temperature: 24.1, humidity: 48.4, co2: 415, voc: 0.01, ch2o: 0.002,
-//               updatedAt: 1789974278870 },
+//               updatedAt: 1789974278870, online: true },
 //     units:  { temperature: '℃', humidity: '%', co2: 'ppm', voc: 'mg/m3', ch2o: 'mg/m3' },
 //     raw:    [ { code: 'co2_value', value: 415, ... }, ... ] }
 //
 // A reading the box has not reported is null. `updatedAt` is the newest report
-// time of the five (ms). When no air box is configured the reply is 404.
+// time of the five (ms). `online` is Tuya's own word on whether the box is
+// connected (null if it gives none) — the readings keep coming back after it
+// goes offline, frozen. When no air box is configured the reply is 404.
 //
 // Each number is converted with the `scale` of the box's own data model
 // (reported number = value × 10^scale). If the model cannot be read, the scales
 // confirmed in API Explorer on 21 Sep (智能空气盒子V3) are used instead.
 
-import { applyCors, pickAirBox, getProperties, getThingModel, fail, failFromError } from '../lib/tuya-ir.js';
+import { applyCors, pickAirBox, getProperties, getThingModel, getOnline, fail, failFromError } from '../lib/tuya-ir.js';
 
 const READINGS = {
   temperature: { code: 'temp_current',   scale: 1, unit: '℃' },
@@ -45,13 +47,14 @@ export default async function handler(req, res) {
     const deviceId = pickAirBox(req.query && req.query.deviceId);
     if (!deviceId) return fail(res, 403, 'Device not allowed');
 
-    const [raw, model] = await Promise.all([
+    const [raw, model, online] = await Promise.all([
       getProperties(deviceId),
       getThingModel(deviceId).catch(() => null),   // the fallback scales cover this
+      getOnline(deviceId).catch(() => null),
     ]);
     const specs = specsOf(model);
 
-    const device = { updatedAt: null };
+    const device = { updatedAt: null, online };
     const units = {};
     for (const [key, r] of Object.entries(READINGS)) {
       const point = raw.find(p => p.code === r.code);
