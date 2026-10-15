@@ -59,7 +59,6 @@ export default async function handler(req, res) {
   // produce the same empty result, so the window has to outrun the usage.
   const msNow = Date.now();
   const msBack = msNow - 30 * 86400_000;
-  const msWeekAgo = msNow - 8 * 86400_000;
 
   // Ordered roughly by how useful the answer would be. `want` says what we would
   // do with it, so a reader of the output knows why the attempt was made.
@@ -78,8 +77,8 @@ export default async function handler(req, res) {
       path: `/v1.0/devices/${d}/logs?type=7&codes=${c}&start_time=${msBack}&end_time=${msNow}&size=100` },
     { want: 'the newer iot-03 report log',
       path: `/v1.0/iot-03/devices/${d}/report-logs?codes=${c}&start_time=${msBack}&end_time=${msNow}&size=100` },
-    { want: 'RETENTION: any event at all from 8-30 days ago -- rows here mean Tuya keeps more than a week',
-      path: `/v2.0/cloud/thing/${d}/report-logs?start_time=${msBack}&end_time=${msWeekAgo}&size=20` },
+    { want: 'RETENTION: any event of any kind over 30 days -- its OLDEST row is where Tuya cuts off',
+      path: `/v1.0/devices/${d}/logs?type=1,2,3,4,5,6,7,8,9,10&start_time=${msBack}&end_time=${msNow}&size=100` },
     { want: 'which DPs this device exposes at all, and their ranges',
       path: `/v1.0/devices/${d}/specifications` },
     { want: 'the thing-model properties, where a total may be hiding under another name',
