@@ -53,8 +53,13 @@ export default async function handler(req, res) {
   const d = encodeURIComponent(deviceId);
   const c = encodeURIComponent(code);
   // Epoch milliseconds, which the report-log endpoints take instead of a date.
+  // Thirty days, not seven: a seven-day query came back with 34 rows and
+  // has_more:false, which looked like a retention limit and was not -- the plug
+  // simply was not drawing power the rest of the week. Retention and idleness
+  // produce the same empty result, so the window has to outrun the usage.
   const msNow = Date.now();
-  const msWeek = msNow - 7 * 86400_000;
+  const msBack = msNow - 30 * 86400_000;
+  const msWeekAgo = msNow - 8 * 86400_000;
 
   // Ordered roughly by how useful the answer would be. `want` says what we would
   // do with it, so a reader of the output knows why the attempt was made.
@@ -68,11 +73,13 @@ export default async function handler(req, res) {
     { want: 'per-month totals',
       path: `/v1.0/devices/${d}/statistics/months?code=${c}&start_month=${yyyymm(weekAgo)}&end_month=${yyyymm(now)}` },
     { want: 'every add_ele report with its timestamp — enough to bucket by half hour ourselves',
-      path: `/v2.0/cloud/thing/${d}/report-logs?codes=${c}&start_time=${msWeek}&end_time=${msNow}&size=50` },
+      path: `/v2.0/cloud/thing/${d}/report-logs?codes=${c}&start_time=${msBack}&end_time=${msNow}&size=100` },
     { want: 'the same, on the older device-log API',
-      path: `/v1.0/devices/${d}/logs?type=7&codes=${c}&start_time=${msWeek}&end_time=${msNow}&size=50` },
+      path: `/v1.0/devices/${d}/logs?type=7&codes=${c}&start_time=${msBack}&end_time=${msNow}&size=100` },
     { want: 'the newer iot-03 report log',
-      path: `/v1.0/iot-03/devices/${d}/report-logs?codes=${c}&start_time=${msWeek}&end_time=${msNow}&size=50` },
+      path: `/v1.0/iot-03/devices/${d}/report-logs?codes=${c}&start_time=${msBack}&end_time=${msNow}&size=100` },
+    { want: 'RETENTION: any event at all from 8-30 days ago -- rows here mean Tuya keeps more than a week',
+      path: `/v2.0/cloud/thing/${d}/report-logs?start_time=${msBack}&end_time=${msWeekAgo}&size=20` },
     { want: 'which DPs this device exposes at all, and their ranges',
       path: `/v1.0/devices/${d}/specifications` },
     { want: 'the thing-model properties, where a total may be hiding under another name',
@@ -119,7 +126,16 @@ function trim(result) {
       return { ...result, count: result.result.length, result: result.result.slice(0, 6) };
     }
     if (result && Array.isArray(result.logs)) {
-      return { ...result, count: result.logs.length, logs: result.logs.slice(0, 6) };
+      const ts = result.logs.map((l) => Number(l.event_time)).filter(Boolean);
+      const span = ts.length ? {
+        newest: new Date(Math.max(...ts)).toISOString(),
+        oldest: new Date(Math.min(...ts)).toISOString(),
+        spanHours: Math.round((Math.max(...ts) - Math.min(...ts)) / 36000) / 100,
+      } : null;
+      const rows = result.logs.length > 6
+        ? result.logs.slice(0, 3).concat(result.logs.slice(-3))
+        : result.logs;
+      return { ...result, count: result.logs.length, span, logs: rows };
     }
     return JSON.parse(cap(JSON.stringify(result)));
   } catch {
